@@ -17,36 +17,100 @@ namespace SoThuXiGon
             InitializeComponent();
         }
 
-       
+
         private void ListBox_MouseDown(object sender, MouseEventArgs e)
         {
             ListBox lb = (ListBox)sender;
-            int index = lb.IndexFromPoint(e.X, e.Y);        
-               
-            if(index != -1)
+            int index = lb.IndexFromPoint(e.X, e.Y);
+
+            if (index != -1)
 
                 lb.DoDragDrop(lb.Items[index].ToString(),
                                   DragDropEffects.Copy);
             // xu li ham su kien
         }
-        private void ListBox_DragEnter(object sender,DragEventArgs e)
+        private void ListBox_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.Text))
                 e.Effect = DragDropEffects.Copy;
             else
                 e.Effect = DragDropEffects.Move;
-              
+
         }
+
 
         private void lstDanhSach_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.Text))
             {
-                ListBox lb = (ListBox)sender;
-                lb.Items.Add(e.Data.GetData(DataFormats.Text));
-            } 
+                bool test = false;
+                for (int i = 0; i < lstDanhSach.Items.Count; i++)
+                {
+                    string st = lstDanhSach.Items[i].ToString();
+                    string data = e.Data.GetData(DataFormats.Text).ToString();
+                    if (data == st)
+                        test = true;
+                }
+                if (test == false)
+                {
+                    
+                    int indexOfItemUnderMouseToDrop =
+                     lstDanhSach.IndexFromPoint(lstDanhSach.PointToClient(
+                 new Point(e.X, e.Y)));
+                    // lấy tọa độ
+
+
+                    if (indexOfItemUnderMouseToDrop >= 0 &&
+                     indexOfItemUnderMouseToDrop < lstDanhSach.Items.Count)
+                    {
+                        lstDanhSach.Items.Insert(indexOfItemUnderMouseToDrop,
+                         e.Data.GetData(DataFormats.Text));
+                    }
+                    else
+                    {
+                        // add the selected string to bottom of list
+                        lstDanhSach.Items.Add(e.Data.GetData(DataFormats.Text));
+                    }
+
+
+                   
+                }
+
+            }
+
         }
-        private void Save(object sender,EventArgs e)
+       
+            
+        
+        // Thêm item vào listbox Danh sách thú tại đúng vị trí con trỏ chuột.
+
+        private void lstDanhSach_DragOver(object sender,
+                                    System.Windows.Forms.DragEventArgs e)
+            {
+            int indexOfItemUnderMouseToDrop =
+               lstDanhSach.IndexFromPoint(lstDanhSach.PointToClient(
+                 new Point(e.X, e.Y)));
+            // lấy tọa độ
+            if (indexOfItemUnderMouseToDrop != ListBox.NoMatches)
+            {
+                label1.Text = "\'" + e.Data.GetData(DataFormats.Text) + "\'" +
+                  " will be placed  before item #" + (indexOfItemUnderMouseToDrop + 1) +
+                      "\n which is " + lstDanhSach.SelectedItem;
+                lstDanhSach.SelectedIndex = indexOfItemUnderMouseToDrop;
+            }
+            else
+            {
+                label1.Text = "\'" + e.Data.GetData(DataFormats.Text) + "\'" +
+                  " will be added to the bottom of the listBox.";
+                lstDanhSach.SelectedIndex = indexOfItemUnderMouseToDrop;
+                
+            }
+            if (e.Effect == DragDropEffects.Move)
+                lstDanhSach.Items.Remove((string)e.Data.GetData(DataFormats.Text));
+            // fill  the info listBox
+
+        }
+        private void Save(object sender, EventArgs e)
         {
             // mo tap tin 
             StreamWriter write = new StreamWriter("danhsachthu.txt");
@@ -54,12 +118,12 @@ namespace SoThuXiGon
 
             foreach (var item in lstDanhSach.Items)
 
-            write.WriteLine(item.ToString());
+                write.WriteLine(item.ToString());
             write.Close();
 
         }
 
-       
+
         private void mnuClose_Click(object sender, EventArgs e)
         {
             Close();
@@ -67,35 +131,35 @@ namespace SoThuXiGon
 
         private void mnuLoad_Click(object sender, EventArgs e)
         {
-            
-                StreamReader reader = new StreamReader("thumoi.txt");
 
-                if (reader == null) return;
+            StreamReader reader = new StreamReader("thumoi.txt");
 
-                string input = null;
-                while ((input = reader.ReadLine()) != null)
-                {
+            if (reader == null) return;
+
+            string input = null;
+            while ((input = reader.ReadLine()) != null)
+            {
                 lstThuMoi.Items.Add(input);
-                }
-                reader.Close();
+            }
+            reader.Close();
 
-                using (StreamReader rs = new StreamReader("danhsachthu.txt"))
+            using (StreamReader rs = new StreamReader("danhsachthu.txt"))
+            {
+
+                input = null;
+                while ((input = rs.ReadLine()) != null)
                 {
-
-                    input = null;
-                    while ((input = rs.ReadLine()) != null)
-                    {
                     lstDanhSach.Items.Add(input);
-                    }
                 }
+            }
 
-            
+
 
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            lblTime.Text = String.Format(" Bây giờ là...ngày...{0}:{1}:{2} ngày {3} tháng {4} năm {5}",
+            lblTime.Text = String.Format(" Bây giờ là {0}:{1}:{2} ngày {3} tháng {4} năm {5}",
                                           DateTime.Now.Hour,
                                           DateTime.Now.Minute,
                                           DateTime.Now.Second,
@@ -109,5 +173,25 @@ namespace SoThuXiGon
         {
             lblTime.Enabled = true;
         }
+
+        private void xóaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            lstDanhSach.Items.Remove(lstDanhSach.SelectedItem);
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            lstDanhSach.Items.Remove(lstDanhSach.SelectedItem);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            System.Text.StringBuilder messageBoxCS = new System.Text.StringBuilder();
+            messageBoxCS.AppendFormat("{0} = {1}", "CloseReason", e.CloseReason);
+            messageBoxCS.AppendLine();
+            messageBoxCS.AppendFormat("{0} = {1}", "Cancel", e.Cancel);
+            messageBoxCS.AppendLine();
+            MessageBox.Show(messageBoxCS.ToString(), "FormClosing Event");
+        }
     }
-} 
+}
