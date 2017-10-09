@@ -186,12 +186,13 @@ namespace SoThuXiGon
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            System.Text.StringBuilder messageBoxCS = new System.Text.StringBuilder();
-            messageBoxCS.AppendFormat("{0} = {1}", "CloseReason", e.CloseReason);
-            messageBoxCS.AppendLine();
-            messageBoxCS.AppendFormat("{0} = {1}", "Cancel", e.Cancel);
-            messageBoxCS.AppendLine();
-            MessageBox.Show(messageBoxCS.ToString(), "FormClosing Event");
+            StreamWriter write = new StreamWriter("danhsachthu.txt");
+            if (write == null) return;
+
+            foreach (var item in lstDanhSach.Items)
+
+                write.WriteLine(item.ToString());
+            write.Close();
         }
     }
 }
